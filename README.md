@@ -1,5 +1,7 @@
 # Aegis AI — Autonomous Enterprise Operations Platform
 
+![Aegis Logo](Aegis.png)
+
 > **An AI-powered autonomous operations platform that detects, diagnoses, and remediates production incidents across distributed systems — with durable workflows, multi-agent orchestration, human approval, safety controls, observability, and objective evaluation.**
 
 ## 🚀 What is Aegis AI?

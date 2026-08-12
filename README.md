@@ -4,7 +4,7 @@
 
 > **An AI-powered autonomous operations platform that detects, diagnoses, and remediates production incidents across distributed systems — with durable workflows, multi-agent orchestration, human approval, safety controls, observability, and objective evaluation.**
 
-## 🚀 What is Aegis AI?
+## What is Aegis AI?
 
 Aegis AI is an **AI-SRE platform** designed to act as an intelligent operations engineer for modern distributed systems.
 
@@ -14,7 +14,7 @@ The goal is to build an **engineering-grade autonomous operations system**, not 
 
 ---
 
-## 🎯 The Problem
+## The Problem
 
 Modern production systems are composed of multiple services:
 
@@ -58,7 +58,7 @@ Aegis attempts to answer:
 
 ---
 
-# 🧠 Core Architecture
+# Core Architecture
 
 Aegis consists of two major systems.
 
@@ -148,7 +148,7 @@ The platform observes the target system and manages incidents.
 
 ---
 
-# 🤖 Multi-Agent System
+# Multi-Agent System
 
 Aegis uses specialized agents instead of a single general-purpose agent.
 
@@ -239,7 +239,7 @@ After an incident is resolved, Aegis generates a structured incident report cont
 
 ---
 
-# ⏱️ Durable Execution with Temporal
+# Durable Execution with Temporal
 
 Temporal is used as the workflow orchestration layer.
 
@@ -275,7 +275,7 @@ This allows an incident workflow to survive application crashes or infrastructur
 
 ---
 
-# 🛡️ Safety & Guardrails
+# Safety & Guardrails
 
 Aegis is designed around the principle:
 
@@ -318,7 +318,7 @@ Safety mechanisms include:
 
 ---
 
-# 📊 Observability
+# Observability
 
 Aegis itself is observable.
 
@@ -352,7 +352,7 @@ OpenTelemetry
 
 ---
 
-# 🧪 Chaos Engineering
+# Chaos Engineering
 
 Aegis includes a failure-injection system to evaluate whether the platform can actually handle incidents.
 
@@ -398,7 +398,7 @@ Cascading service failure
 
 ---
 
-# 📈 Objective Evaluation
+# Objective Evaluation
 
 Aegis is evaluated using measurable engineering metrics rather than subjective demonstrations.
 
@@ -440,7 +440,7 @@ These metrics create a reproducible evaluation framework for the autonomous syst
 
 ---
 
-# 💰 Intelligent Model Routing
+# Intelligent Model Routing
 
 Not every operational problem requires the most expensive model.
 
@@ -471,7 +471,7 @@ This allows optimization of:
 
 ---
 
-# 🏗️ Backend Engineering
+# Backend Engineering
 
 Aegis is designed as a real backend system.
 
@@ -505,7 +505,7 @@ Database
 
 ---
 
-# 🗄️ Incident Management
+# Incident Management
 
 The platform maintains a persistent incident lifecycle.
 
@@ -533,7 +533,7 @@ This creates a complete audit trail of what happened and why.
 
 ---
 
-# 👤 Human-in-the-Loop
+# Human-in-the-Loop
 
 Aegis is not designed as a blindly autonomous system.
 
@@ -563,7 +563,7 @@ The approval becomes a workflow signal and the Temporal workflow continues from 
 
 ---
 
-# 🔐 Security
+# Security
 
 Security is treated as part of the architecture rather than an afterthought.
 
@@ -582,7 +582,7 @@ Areas include:
 
 ---
 
-# 🌐 Multi-Tenant Architecture
+# Multi-Tenant Architecture
 
 Aegis is designed with enterprise deployment in mind.
 
@@ -609,7 +609,7 @@ Aegis
 
 ---
 
-# 🔌 Tool-Based Agent Architecture
+# Tool-Based Agent Architecture
 
 Agents interact with the environment through controlled tools instead of directly accessing infrastructure.
 
@@ -638,7 +638,7 @@ Every tool call can be:
 
 ---
 
-# 📋 Auditability
+# Auditability
 
 Every important operation is recorded.
 
@@ -665,7 +665,7 @@ This makes the system explainable and auditable.
 
 ---
 
-# 🧱 Project Development Roadmap
+# Project Development Roadmap
 
 The project is developed incrementally.
 
@@ -763,7 +763,7 @@ The final platform provides an operations dashboard where engineers can:
 
 ---
 
-# 🎯 Project Goal
+# Project Goal
 
 Aegis AI is intended to demonstrate the engineering skills required to build modern AI-powered production systems.
 
@@ -801,7 +801,7 @@ The objective is to demonstrate that an AI system can **operate reliably inside 
 
 ## Status
 
-🚧 **Currently in active development**
+**Currently in active development**
 
 Current foundation:
 

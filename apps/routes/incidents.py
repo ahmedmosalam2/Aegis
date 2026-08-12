@@ -1,12 +1,12 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from apps.api.database import AsyncSessionLocal
 from apps.models import Incident
-from sqlalchemy import select
+from apps.schemas.incidents import IncidentCreate ,IncidentUpdate
 
 
 router = APIRouter(
@@ -14,11 +14,6 @@ router = APIRouter(
     tags=["Incidents"],
 )
 
-
-class IncidentCreate(BaseModel):
-    title: str
-    description: str | None = None
-    severity: str = "medium"
 
 
 async def get_db():
@@ -61,3 +56,75 @@ async def list_incidents(
     incidents = result.scalars().all()
 
     return incidents
+
+@router.get("/{incident_id}")
+async def get_incident(
+    incident_id: UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(Incident).where(Incident.id == incident_id)
+    )
+
+    incident = result.scalar_one_or_none()
+
+    if incident is None:
+        return {"detail": "Incident not found"}
+
+    return {
+        "id": str(incident.id),
+        "title": incident.title,
+        "description": incident.description,
+        "severity": incident.severity,
+        "status": incident.status,
+    }
+@router.patch("/{incident_id}")
+async def update_incident(
+    incident_id: UUID,
+    incident_data: IncidentUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(Incident).where(Incident.id == incident_id)
+    )
+
+    incident = result.scalar_one_or_none()
+
+    if incident is None:
+        return {"detail": "Incident not found"}
+
+    update_data = incident_data.model_dump(exclude_unset=True)
+
+    for field, value in update_data.items():
+        setattr(incident, field, value)
+
+    await db.commit()
+    await db.refresh(incident)
+
+    return {
+        "id": str(incident.id),
+        "title": incident.title,
+        "description": incident.description,
+        "severity": incident.severity,
+        "status": incident.status,
+    }
+
+@router.delete("/{incident_id}")
+async def delete_incident(
+    incident_id: UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(Incident).where(Incident.id == incident_id)
+    )
+
+    incident = result.scalar_one_or_none()
+
+    if incident is None:
+        return {"detail": "Incident not found"}
+
+    await db.delete(incident)
+    await db.commit()
+
+    return {"detail": "Incident deleted successfully"}
+  

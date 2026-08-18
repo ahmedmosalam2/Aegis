@@ -6,30 +6,30 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import text
 
-DATABASE_URL = (
-    "postgresql+asyncpg://"
-    "aegis:aegis_dev_password@localhost:5432/aegis"
+from apps.api.config import settings
+
+engine = create_async_engine(
+    settings.DATABASE_URL,
+    echo=True,
 )
 
-engine= create_async_engine(
-    DATABASE_URL,
-    echo=True
-)
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
     expire_on_commit=False,
 )
 
+
 class Base(DeclarativeBase):
     pass
 
 
 async def init_db():
-    from apps.models import Incident
+    from apps.models import Incident, Service, Event
 
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
+
 
 async def check_db_connection():
     async with engine.connect() as connection:

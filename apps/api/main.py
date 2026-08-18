@@ -7,8 +7,7 @@ from apps.api.database import init_db
 from apps.routes.health import router as health_router
 from apps.routes.incidents import router as incidents_router
 from apps.routes.services import router as services_router
-
-
+from apps.routes.events import router as events_router
 
 
 @asynccontextmanager
@@ -27,3 +26,4 @@ app = FastAPI(
 app.include_router(health_router)
 app.include_router(incidents_router)
 app.include_router(services_router)
+app.include_router(events_router)

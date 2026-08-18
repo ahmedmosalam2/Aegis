@@ -1,10 +1,16 @@
 from uuid import UUID
-from fastapi import APIRouter, Depends
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from apps.api.database import AsyncSessionLocal
+
+from apps.api.dependencies import get_db
 from apps.models import Service
-from apps.schemas.services import ServiceCreate, ServiceUpdate
+from apps.schemas.services import (
+    ServiceCreate,
+    ServiceUpdate,
+    ServiceResponse,
+)
 
 
 router = APIRouter(
@@ -12,12 +18,12 @@ router = APIRouter(
     tags=["Services"],
 )
 
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        yield session
 
-
-@router.post("/")
+@router.post(
+    "/",
+    response_model=ServiceResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_service(
     service_data: ServiceCreate,
     db: AsyncSession = Depends(get_db),
@@ -34,17 +40,10 @@ async def create_service(
     await db.commit()
     await db.refresh(service)
 
-    return {
-        "id": str(service.id),
-        "name": service.name,
-        "description": service.description,
-        "environment": service.environment,
-        "health_check_url": service.health_check_url,
-        "status": service.status,
-    }
+    return service
 
 
-@router.get("/")
+@router.get("/", response_model=list[ServiceResponse])
 async def list_services(
     db: AsyncSession = Depends(get_db),
 ):
@@ -52,12 +51,10 @@ async def list_services(
         select(Service).order_by(Service.created_at.desc())
     )
 
-    services = result.scalars().all()
-
-    return services
+    return result.scalars().all()
 
 
-@router.get("/{service_id}")
+@router.get("/{service_id}", response_model=ServiceResponse)
 async def get_service(
     service_id: UUID,
     db: AsyncSession = Depends(get_db),
@@ -69,18 +66,15 @@ async def get_service(
     service = result.scalar_one_or_none()
 
     if service is None:
-        return {"detail": "Service not found"}
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Service not found",
+        )
 
-    return {
-        "id": str(service.id),
-        "name": service.name,
-        "description": service.description,
-        "environment": service.environment,
-        "health_check_url": service.health_check_url,
-        "status": service.status,
-    }
+    return service
 
-@router.patch("/{service_id}")
+
+@router.patch("/{service_id}", response_model=ServiceResponse)
 async def update_service(
     service_id: UUID,
     service_data: ServiceUpdate,
@@ -93,7 +87,10 @@ async def update_service(
     service = result.scalar_one_or_none()
 
     if service is None:
-        return {"detail": "Service not found"}
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Service not found",
+        )
 
     update_data = service_data.model_dump(exclude_unset=True)
 
@@ -103,16 +100,13 @@ async def update_service(
     await db.commit()
     await db.refresh(service)
 
-    return {
-        "id": str(service.id),
-        "name": service.name,
-        "description": service.description,
-        "environment": service.environment,
-        "health_check_url": service.health_check_url,
-        "status": service.status,
-    }
+    return service
 
-@router.delete("/{service_id}")
+
+@router.delete(
+    "/{service_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 async def delete_service(
     service_id: UUID,
     db: AsyncSession = Depends(get_db),
@@ -124,9 +118,10 @@ async def delete_service(
     service = result.scalar_one_or_none()
 
     if service is None:
-        return {"detail": "Service not found"}
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Service not found",
+        )
 
     await db.delete(service)
     await db.commit()
-
-    return {"detail": "Service deleted successfully"}

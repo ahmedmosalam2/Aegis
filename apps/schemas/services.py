@@ -1,4 +1,6 @@
 from pydantic import BaseModel, Field
+from datetime import datetime
+
 
 class ServiceCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
@@ -35,6 +37,7 @@ class ServiceUpdate(BaseModel):
         max_length=20,
     )
 
+
 class ServiceResponse(BaseModel):
     id: str
     name: str
@@ -42,3 +45,8 @@ class ServiceResponse(BaseModel):
     environment: str
     health_check_url: str | None
     status: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True

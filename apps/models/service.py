@@ -3,7 +3,7 @@ from uuid import UUID, uuid4
 
 from sqlalchemy import DateTime, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from apps.api.database import Base
 
@@ -57,3 +57,6 @@ class Service(Base):
         server_default=func.now(),
         onupdate=func.now(),
     )
+
+    # Relationships
+    incidents = relationship("Incident", back_populates="service")

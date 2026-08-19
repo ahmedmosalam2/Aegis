@@ -25,7 +25,7 @@ class Base(DeclarativeBase):
 
 
 async def init_db():
-    from apps.models import Incident, Service, Event
+    from apps.models import Incident, Service, Event, IncidentEvent
 
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)

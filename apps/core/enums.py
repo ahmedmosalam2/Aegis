@@ -15,7 +15,7 @@ class IncidentStatus(str, Enum):
 
 
 class IncidentSeverity(str, Enum):
-    """Incident severity levels."""
+
 
     CRITICAL = "critical"
     HIGH = "high"

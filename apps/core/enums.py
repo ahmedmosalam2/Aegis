@@ -28,10 +28,10 @@ class ServiceStatus(str, Enum):
     """Health states for target system services."""
 
     HEALTHY = "healthy"
-    DEGRADED = "degraded"          # partially working, elevated errors/latency
-    UNHEALTHY = "unhealthy"        # significant issues, likely to fail soon
-    DOWN = "down"                  # completely unavailable
-    UNKNOWN = "unknown"            # no health data available
+    DEGRADED = "degraded"         
+    UNHEALTHY = "unhealthy"      
+    DOWN = "down"                 
+    UNKNOWN = "unknown"         
 
 
 class FailureType(str, Enum):

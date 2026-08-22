@@ -24,6 +24,35 @@ class IncidentSeverity(str, Enum):
     INFO = "info"
 
 
+class ServiceStatus(str, Enum):
+    """Health states for target system services."""
+
+    HEALTHY = "healthy"
+    DEGRADED = "degraded"          # partially working, elevated errors/latency
+    UNHEALTHY = "unhealthy"        # significant issues, likely to fail soon
+    DOWN = "down"                  # completely unavailable
+    UNKNOWN = "unknown"            # no health data available
+
+
+class FailureType(str, Enum):
+    """Injectable failure types for chaos engineering."""
+
+    SERVICE_CRASH = "service_crash"
+    HIGH_LATENCY = "high_latency"
+    MEMORY_LEAK = "memory_leak"
+    CPU_SATURATION = "cpu_saturation"
+    DEPENDENCY_FAILURE = "dependency_failure"
+    CONNECTION_EXHAUSTION = "connection_exhaustion"
+
+
+class FailureStatus(str, Enum):
+    """Lifecycle status of a failure injection."""
+
+    ACTIVE = "active"
+    RESOLVED = "resolved"          # manually or automatically resolved
+    EXPIRED = "expired"            # auto-resolve timer elapsed
+
+
 # Valid state transitions — defines which status can move to which
 VALID_STATUS_TRANSITIONS: dict[IncidentStatus, list[IncidentStatus]] = {
     IncidentStatus.DETECTED: [

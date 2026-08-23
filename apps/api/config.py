@@ -11,6 +11,12 @@ class Settings(BaseSettings):
         "postgresql+asyncpg://aegis:aegis_dev_password@localhost:5432/aegis"
     )
 
+    # Observability
+    LOG_LEVEL: str = "INFO"
+    OTEL_ENABLED: bool = True
+    OTEL_EXPORTER_ENDPOINT: str = "http://localhost:4317"
+    PROMETHEUS_ENABLED: bool = True
+
     class Config:
         env_file = ".env"
 

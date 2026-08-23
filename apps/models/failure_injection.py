@@ -7,7 +7,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from apps.api.database import Base
 
-
 class FailureInjection(Base):
 
     __tablename__ = "failure_injections"
@@ -63,7 +62,6 @@ class FailureInjection(Base):
         nullable=True,
     )
 
-    # Auto-resolve after N seconds (optional)
     auto_resolve_after: Mapped[int | None] = mapped_column(
         Integer,
         nullable=True,

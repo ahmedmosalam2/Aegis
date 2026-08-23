@@ -60,3 +60,4 @@ class Service(Base):
 
     # Relationships
     incidents = relationship("Incident", back_populates="service")
+    failure_injections = relationship("FailureInjection", back_populates="service")

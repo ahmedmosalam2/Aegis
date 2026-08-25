@@ -9,6 +9,8 @@ from apps.api.dependencies import get_db
 from apps.models import Service, IncidentEvent
 from apps.models.failure_injection import FailureInjection
 from apps.core.enums import FailureStatus
+from apps.core.logging import get_logger
+from apps.core.telemetry import FAILURES_INJECTED, FAILURES_RESOLVED
 from apps.schemas.failures import (
     FailureInjectRequest,
     FailureInjectResponse,
@@ -16,6 +18,7 @@ from apps.schemas.failures import (
     FailureListResponse,
 )
 
+logger = get_logger("routes.failures")
 
 router = APIRouter(
     prefix="/failures",
@@ -62,6 +65,15 @@ async def inject_failure(
     await db.commit()
     await db.refresh(injection)
     
+    logger.info(
+        f"Injected {injection.failure_type} into {service.name}",
+        extra={"extra_data": {"failure_id": str(injection.id)}}
+    )
+    FAILURES_INJECTED.labels(
+        failure_type=injection.failure_type,
+        service_name=service.name,
+    ).inc()
+    
     return injection
 
 
@@ -100,6 +112,12 @@ async def resolve_failure(
     
     await db.commit()
     await db.refresh(injection)
+    
+    logger.info(
+        f"Resolved failure {injection.id}",
+        extra={"extra_data": {"failure_id": str(injection.id)}}
+    )
+    FAILURES_RESOLVED.inc()
     
     return injection
 

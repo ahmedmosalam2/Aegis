@@ -3,17 +3,58 @@ services:
     image: postgres:16
     container_name: aegis-postgres
     restart: unless-stopped
-
     environment:
       POSTGRES_DB: aegis
       POSTGRES_USER: aegis
       POSTGRES_PASSWORD: aegis_dev_password
-
     ports:
       - "5432:5432"
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - aegis-net
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.62
+    container_name: aegis-jaeger
+    restart: unless-stopped
+    ports:
+      - "16686:16686"    # Jaeger UI
+      - "4317:4317"      # OTLP gRPC receiver
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    networks:
+      - aegis-net
+
+  prometheus:
+    image: prom/prometheus:v2.54.0
+    container_name: aegis-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - aegis-net
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: aegis-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: aegis
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - aegis-net
+
+networks:
+  aegis-net:
+    driver: bridge
 
 volumes:
   postgres_data:

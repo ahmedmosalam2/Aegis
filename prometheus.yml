@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "aegis-api"
+    # When Aegis runs on host (dev mode)
+    static_configs:
+      - targets: ["host.docker.internal:8000"]
+    
+    # If you run Aegis inside Docker using the Dockerfile, uncomment this instead:
+    # static_configs:
+    #   - targets: ["aegis-api:8000"]

@@ -8,6 +8,8 @@ from apps.api.dependencies import get_db
 from apps.models import Incident
 from apps.models.incident_event import IncidentEvent
 from apps.core.enums import IncidentStatus, validate_status_transition
+from apps.core.logging import get_logger
+from apps.core.telemetry import INCIDENTS_CREATED, INCIDENTS_RESOLVED
 from apps.schemas.incidents import (
     IncidentCreate,
     IncidentUpdate,
@@ -17,6 +19,7 @@ from apps.schemas.incidents import (
     IncidentEventResponse,
 )
 
+logger = get_logger("routes.incidents")
 
 router = APIRouter(
     prefix="/incidents",
@@ -57,6 +60,12 @@ async def create_incident(
     )
     db.add(event)
     await db.commit()
+    
+    logger.info(
+        f"Incident created: {incident.title}",
+        extra={"extra_data": {"incident_id": str(incident.id), "severity": incident.severity}}
+    )
+    INCIDENTS_CREATED.inc()
 
     return incident
 
@@ -167,6 +176,13 @@ async def transition_incident_status(
 
     await db.commit()
     await db.refresh(incident)
+    
+    logger.info(
+        f"Incident {incident.id} status transition: {old_status} → {target_status.value}",
+        extra={"extra_data": {"incident_id": str(incident.id), "new_status": target_status.value}}
+    )
+    if target_status == IncidentStatus.RESOLVED:
+        INCIDENTS_RESOLVED.inc()
 
     return incident
 

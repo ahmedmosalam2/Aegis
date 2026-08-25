@@ -14,6 +14,55 @@ services:
     networks:
       - aegis-net
 
+  # ── Temporal ──────────────────────────────────────────────────────
+  # Temporal needs its own Postgres instance (separate DB from Aegis)
+  temporal-postgres:
+    image: postgres:16
+    container_name: temporal-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: temporal
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: temporal
+    ports:
+      - "5433:5432"
+    volumes:
+      - temporal_postgres_data:/var/lib/postgresql/data
+    networks:
+      - aegis-net
+
+  temporal:
+    image: temporalio/auto-setup:1.27
+    container_name: aegis-temporal
+    restart: unless-stopped
+    depends_on:
+      - temporal-postgres
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=temporal-postgres
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+    ports:
+      - "7233:7233"    # Temporal gRPC API (workers connect here)
+    networks:
+      - aegis-net
+
+  temporal-ui:
+    image: temporalio/ui:2.33.0
+    container_name: aegis-temporal-ui
+    restart: unless-stopped
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    ports:
+      - "8088:8080"    # Temporal Web UI
+    networks:
+      - aegis-net
+
   jaeger:
     image: jaegertracing/all-in-one:1.62
     container_name: aegis-jaeger
@@ -58,3 +107,4 @@ networks:
 
 volumes:
   postgres_data:
+  temporal_postgres_data:

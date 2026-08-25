@@ -5,6 +5,7 @@ alembic
 pydantic-settings
 psycopg2-binary
 asyncpg
+httpx
 
 # Observability
 opentelemetry-api
@@ -13,3 +14,6 @@ opentelemetry-exporter-otlp-proto-grpc
 opentelemetry-instrumentation-fastapi
 opentelemetry-instrumentation-sqlalchemy
 prometheus-client
+
+# Workflow orchestration
+temporalio

@@ -35,8 +35,6 @@ class ServiceStatus(str, Enum):
 
 
 class FailureType(str, Enum):
-    """Injectable failure types for chaos engineering."""
-
     SERVICE_CRASH = "service_crash"
     HIGH_LATENCY = "high_latency"
     MEMORY_LEAK = "memory_leak"

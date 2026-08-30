@@ -11,6 +11,9 @@ class Settings(BaseSettings):
         "postgresql+asyncpg://aegis:aegis_dev_password@localhost:5432/aegis"
     )
 
+    # Temporal
+    TEMPORAL_ADDRESS: str = "localhost:7233"
+
     # Observability
     LOG_LEVEL: str = "INFO"
     OTEL_ENABLED: bool = True

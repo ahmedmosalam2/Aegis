@@ -14,7 +14,7 @@ class ServiceHealthReport:
     metrics: dict = field(default_factory=dict)
 
 
-# ─── Default Metrics ───────────────────────────────────────────────
+# ───────────────────────────────────────────────
 
 def _baseline_metrics() -> dict:
     return {

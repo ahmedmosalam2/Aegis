@@ -14,8 +14,6 @@ class ServiceHealthReport:
     metrics: dict = field(default_factory=dict)
 
 
-# ───────────────────────────────────────────────
-
 def _baseline_metrics() -> dict:
     return {
         "error_rate": 0.0,

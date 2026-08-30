@@ -1,4 +1,7 @@
 
+from collections import deque
+
+
 SERVICE_DEPENDENCIES: dict[str, list[str]] = {
     "api-gateway": [
         "order-service",
@@ -20,8 +23,7 @@ SERVICE_DEPENDENCIES: dict[str, list[str]] = {
 }
 
 
-# ── Default Services ────────────────────────────────────────────────
-# Seeded into the database on first startup.
+
 
 DEFAULT_SERVICES = [
     {
@@ -83,20 +85,11 @@ def get_dependents(service_name: str) -> list[str]:
 
 
 def get_dependency_chain(service_name: str) -> set[str]:
-    """Get the full transitive set of services affected if this one fails.
-
-    Walks the dependency graph upward — finds every service that
-    directly or indirectly depends on the given service.
-
-    Example: get_dependency_chain("postgres")
-             → {"payment-service", "inventory-service",
-                "order-service", "api-gateway"}
-    """
     affected: set[str] = set()
-    queue = [service_name]
+    queue = deque([service_name])
 
     while queue:
-        current = queue.pop(0)
+        current = queue.popleft()
         for dependent in get_dependents(current):
             if dependent not in affected:
                 affected.add(dependent)
@@ -106,5 +99,5 @@ def get_dependency_chain(service_name: str) -> set[str]:
 
 
 def would_cascade(service_name: str) -> bool:
-    """Check if a failure in this service would cascade to others."""
+
     return len(get_dependents(service_name)) > 0

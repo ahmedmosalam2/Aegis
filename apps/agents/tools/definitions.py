@@ -1,21 +1,4 @@
-"""
-Tool Definitions — the actual tools available to Aegis agents.
 
-Each tool is a window into the system. The agents use these tools
-to investigate incidents, just like a real SRE engineer would use
-Grafana, Datadog, kubectl, or the service dependency map.
-
-Currently these tools query our internal simulation engine.
-In production, they would query real observability systems:
-    query_metrics      → Prometheus / Datadog
-    search_logs        → Elasticsearch / Loki
-    get_dependencies   → Service mesh / Kubernetes
-    get_active_failures → Chaos engineering platform
-    check_system_health → Unified health dashboard
-
-The key design decision: tools are the ONLY way agents interact
-with the system. They never touch SQLAlchemy or the DB directly.
-"""
 from __future__ import annotations
 
 from datetime import datetime, timezone, timedelta

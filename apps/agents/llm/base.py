@@ -1,13 +1,4 @@
-"""
-LLM Client Abstraction Layer.
 
-Defines the interface that ALL LLM providers must implement.
-The agents interact ONLY with this interface — they never know
-which provider (OpenAI, Anthropic, local) is behind the scenes.
-
-This separation means we can swap providers without touching
-a single line in any agent.
-"""
 from __future__ import annotations
 
 import json
@@ -119,17 +110,5 @@ class BaseLLMClient(ABC):
         temperature: float = 0.0,
         max_tokens: int = 4096,
     ) -> LLMResponse:
-        """Send messages to the LLM and get a response.
 
-        Args:
-            messages: Conversation history (system + user + assistant + tool)
-            tools: Tool schemas in OpenAI function calling format.
-                   Pass None to force a text-only response.
-            temperature: 0.0 = deterministic (recommended for SRE).
-                         Higher values = more creative (not what we want).
-            max_tokens: Maximum response length.
-
-        Returns:
-            LLMResponse with content and/or tool_calls.
-        """
         ...

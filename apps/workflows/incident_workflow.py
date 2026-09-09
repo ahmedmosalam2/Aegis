@@ -24,6 +24,7 @@ from asyncio import TimeoutError as AsyncTimeoutError
 from datetime import timedelta
 
 from temporalio import workflow
+from temporalio.common import RetryPolicy
 
 with workflow.unsafe.imports_passed_through():
     from apps.workflows.dataclasses import (
@@ -49,14 +50,14 @@ with workflow.unsafe.imports_passed_through():
 
 # ─── Retry / Timeout Policies ─────────────────────────────────────
 
-ACTIVITY_RETRY = workflow.RetryPolicy(
+ACTIVITY_RETRY = RetryPolicy(
     initial_interval=timedelta(seconds=1),
     backoff_coefficient=2.0,
     maximum_interval=timedelta(seconds=30),
     maximum_attempts=3,
 )
 
-ACTIVITY_TIMEOUT = timedelta(seconds=60)
+ACTIVITY_TIMEOUT = timedelta(minutes=5)
 
 # Maximum times we re-diagnose after verification failure
 MAX_REINVESTIGATION_ATTEMPTS = 3

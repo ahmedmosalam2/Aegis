@@ -7,10 +7,6 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
-# ═══════════════════════════════════════════════════════════════════
-# DATA STRUCTURES
-# ═══════════════════════════════════════════════════════════════════
-
 
 @dataclass
 class ToolCall:

@@ -24,9 +24,9 @@ class OllamaClient(BaseLLMClient):
     which mirrors the OpenAI format for compatible models.
     """
 
-    def __init__(self, model: str = "llama3.2"):
+    def __init__(self, model: str = "llama3.2", host: str = "http://localhost:11434"):
         self.model = model
-        self._client = ollama.AsyncClient()
+        self._client = ollama.AsyncClient(host=host)
 
     async def chat(
         self,

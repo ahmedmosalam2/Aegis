@@ -167,7 +167,7 @@ async def main():
     print()
     print("  Recommended Actions:")
     for a in output.recommended_actions:
-        print(f"    → {a}")
+        print(f"    -> {a}")
     print("=" * 60)
 
 

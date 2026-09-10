@@ -15,13 +15,40 @@ class IncidentStatus(str, Enum):
 
 
 class IncidentSeverity(str, Enum):
-    """Incident severity levels."""
+
 
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
     INFO = "info"
+
+
+class ServiceStatus(str, Enum):
+    """Health states for target system services."""
+
+    HEALTHY = "healthy"
+    DEGRADED = "degraded"         
+    UNHEALTHY = "unhealthy"      
+    DOWN = "down"                 
+    UNKNOWN = "unknown"         
+
+
+class FailureType(str, Enum):
+    SERVICE_CRASH = "service_crash"
+    HIGH_LATENCY = "high_latency"
+    MEMORY_LEAK = "memory_leak"
+    CPU_SATURATION = "cpu_saturation"
+    DEPENDENCY_FAILURE = "dependency_failure"
+    CONNECTION_EXHAUSTION = "connection_exhaustion"
+
+
+class FailureStatus(str, Enum):
+    """Lifecycle status of a failure injection."""
+
+    ACTIVE = "active"
+    RESOLVED = "resolved"          # manually or automatically resolved
+    EXPIRED = "expired"            # auto-resolve timer elapsed
 
 
 # Valid state transitions — defines which status can move to which

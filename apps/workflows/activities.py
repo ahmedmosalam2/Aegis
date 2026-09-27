@@ -212,17 +212,25 @@ async def activity_plan_remediation(
     input: IncidentWorkflowInput,
     diagnosis: DiagnosisResult,
 ) -> RemediationAction:
-    """Plan remediation using the AI Remediation Agent."""
+    """Plan remediation using the AI Remediation Agent + Policy Engine.
+
+    Flow:
+        1. AI Remediation Agent proposes an action
+        2. Policy Engine validates: allowlist → rate limit → risk scoring
+        3. Policy Engine's decision overrides the LLM's self-assessment
+    """
     activity.logger.info(f"[Remediation Plan] Starting for incident {input.incident_id}")
 
     from apps.core.enums import IncidentStatus
     from apps.agents import create_remediation_agent
+    from apps.safety.policy_engine import evaluate
 
     async with await _get_db_session() as session:
         incident = await _get_incident(session, input.incident_id)
         if not incident:
             raise RuntimeError(f"Incident {input.incident_id} not found")
 
+        # ── Step 1: AI Agent proposes an action ────────────────────
         agent = create_remediation_agent()
         output = await agent.plan(
             service_name=input.service_name,
@@ -232,7 +240,44 @@ async def activity_plan_remediation(
             db_session=session,
         )
 
-        if output.requires_approval:
+        # ── Step 2: Policy Engine validates the proposed action ────
+        # الـ policy engine هو اللي بيقرر — مش الـ LLM
+        decision = evaluate(
+            action_name=output.action_type,
+            target_service=output.target_service or input.service_name,
+            llm_risk=output.risk_level,
+            incident_id=input.incident_id,
+        )
+
+        if not decision.allowed:
+            # الـ action ممنوعة — نـ raise exception تتمسك في الـ workflow
+            # الـ workflow عنده retry policy — هيحاول تاني
+            activity.logger.error(
+                f"[Remediation Plan] BLOCKED by policy engine: {decision.rejection_reason}"
+            )
+            await _log_event(
+                session,
+                input.incident_id,
+                event_type="remediation_blocked",
+                description=(
+                    f"Policy engine blocked action '{output.action_type}': "
+                    f"{decision.rejection_reason}"
+                ),
+                metadata={
+                    "action": output.action_type,
+                    "rejection_reason": decision.rejection_reason,
+                    "audit_log": decision.audit_log,
+                },
+            )
+            raise RuntimeError(
+                f"Policy engine blocked remediation: {decision.rejection_reason}"
+            )
+
+        # ── Step 3: Use policy engine's risk decision (not LLM's) ──
+        final_risk = decision.final_risk.value  # type: ignore[union-attr]
+        final_approval = decision.requires_approval
+
+        if final_approval:
             old_status = await _update_status(
                 session, incident, IncidentStatus.AWAITING_APPROVAL.value
             )
@@ -241,12 +286,23 @@ async def activity_plan_remediation(
                 input.incident_id,
                 event_type="approval_requested",
                 description=(
-                    f"AI planned high-risk action: {output.action_type} "
-                    f"on {output.target_service}. Risk: {output.risk_level}. {output.reason}"
+                    f"Policy engine classified '{output.action_type}' on "
+                    f"'{output.target_service}' as HIGH risk (score={decision.risk_score}). "
+                    f"Awaiting human approval. {output.reason}"
                 ),
                 old_status=old_status,
                 new_status=IncidentStatus.AWAITING_APPROVAL.value,
-                metadata={"action": output.action_type, "risk_level": output.risk_level},
+                metadata={
+                    "action": output.action_type,
+                    "risk_level": final_risk,
+                    "risk_score": decision.risk_score,
+                    "llm_risk": output.risk_level,
+                    "llm_overridden": (
+                        decision.risk_assessment.llm_risk_overridden
+                        if decision.risk_assessment else False
+                    ),
+                    "audit_log": decision.audit_log,
+                },
             )
         else:
             await _log_event(
@@ -254,21 +310,28 @@ async def activity_plan_remediation(
                 input.incident_id,
                 event_type="remediation_planned",
                 description=(
-                    f"AI auto-approved action: {output.action_type} "
-                    f"on {output.target_service}. Risk: {output.risk_level}."
+                    f"Policy engine approved auto-execution: '{output.action_type}' "
+                    f"on '{output.target_service}'. Risk: {final_risk} "
+                    f"(score={decision.risk_score})."
                 ),
-                metadata={"action": output.action_type, "risk_level": output.risk_level},
+                metadata={
+                    "action": output.action_type,
+                    "risk_level": final_risk,
+                    "risk_score": decision.risk_score,
+                    "audit_log": decision.audit_log,
+                },
             )
 
     activity.logger.info(
-        f"[Remediation Plan] action={output.action_type}, risk={output.risk_level}"
+        f"[Remediation Plan] action={output.action_type}, "
+        f"policy_risk={final_risk}, requires_approval={final_approval}"
     )
 
     return RemediationAction(
         action_type=output.action_type,
         target_service=output.target_service or input.service_name,
-        risk_level=output.risk_level,
-        requires_approval=output.requires_approval,
+        risk_level=final_risk,           # ← من الـ policy engine
+        requires_approval=final_approval, # ← من الـ policy engine
         parameters=output.parameters,
         reason=output.reason,
     )
@@ -279,12 +342,17 @@ async def activity_execute_remediation(
     input: IncidentWorkflowInput,
     action: RemediationAction,
 ) -> RemediationResult:
-    """Execute remediation — resolves active failures in the DB."""
+    """Execute remediation — resolves active failures in the DB.
+
+    بعد التنفيذ الناجح، بنسجّل في الـ rate limiter عشان نمنع
+    التنفيذ المتكرر لو الـ verification فشل ورجعنا للـ planning.
+    """
     activity.logger.info(
         f"[Remediation Execute] {action.action_type} on {action.target_service}"
     )
 
     from apps.core.enums import IncidentStatus, FailureStatus
+    from apps.safety.rate_limiter import get_rate_limiter
 
     async with await _get_db_session() as session:
         incident = await _get_incident(session, input.incident_id)
@@ -306,6 +374,14 @@ async def activity_execute_remediation(
 
         service.status = "healthy"
         await session.commit()
+
+        # ── Record execution in rate limiter ───────────────────────
+        # يتعمل بعد الـ commit عشان لو فشل الـ commit ما نحسبهاش
+        get_rate_limiter().record(
+            action_name=action.action_type,
+            service_name=action.target_service,
+            incident_id=input.incident_id,
+        )
 
         await _log_event(
             session,

@@ -17,3 +17,7 @@ prometheus-client
 
 # Workflow orchestration
 temporalio
+
+# Dev / CI
+ruff
+pytest

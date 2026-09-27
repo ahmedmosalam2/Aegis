@@ -1,0 +1,40 @@
+﻿name: Aegis CI
+
+on:
+  push:
+    branches: ["main", "dev"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    name: Run Safety & Router Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Safety Layer tests
+        run: |
+          python -m pytest apps/test/test_prompt_injection.py -v \
+            --tb=short \
+            -q
+
+      - name: Run Cost Router tests
+        run: |
+          python -m pytest apps/test/test_cost_router.py -v \
+            --tb=short \
+            -q
+
+      - name: Print cost savings demo
+        run: python apps/test/test_cost_router.py
